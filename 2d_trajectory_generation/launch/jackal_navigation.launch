@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="node_start_delay" default="0.0" />
+
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/velodyne_points" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: -0.3
+      filter_limit_max: 1.0
+      filter_limit_negative: False
+      leaf_size: 0.1
+    </rosparam>
+  </node>
+
+  <!-- Run a passthrough filter to clean NaNs -->
+  <node pkg="nodelet" type="nodelet" name="passthrough1" args="load pcl/PassThrough pcl_manager" output="screen">
+    <remap from="~input" to="/voxel_grid/output" />
+    <rosparam>
+      filter_field_name: x
+      filter_limit_min: 0.0
+      filter_limit_max: 5.0
+      filter_limit_negative: False
+    </rosparam>
+  </node>
+
+  <!-- Run a passthrough filter to clean NaNs -->
+  <node pkg="nodelet" type="nodelet" name="passthrough2" args="load pcl/PassThrough pcl_manager" output="screen">
+    <remap from="~input" to="/passthrough1/output" />
+    <rosparam>
+      filter_field_name: y
+      filter_limit_min: -8.6
+      filter_limit_max: 8.6
+      filter_limit_negative: False
+    </rosparam>
+  </node>
+   
+  <node pkg="trajectory_generation" name="Controller" type="controller_node" respawn="true" output="screen"/>
+  <node pkg="trajectory_generation" name="TrajectoryGeneration" type="trajectory_generation_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " respawn="true" output="screen"/>
+      
+   
+
+</launch>

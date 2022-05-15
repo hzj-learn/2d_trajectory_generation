@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+   <arg name="node_start_delay" default="1.0" />
+   <node pkg="trajectory_generation" name="Controller" type="controller_node_R3" respawn="true" output="screen"/>
+   <node pkg="trajectory_generation" name="TrajectoryGeneration" type="trajectory_generation_node_final" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " respawn="true" output="screen"/>
+   
+
+</launch>
